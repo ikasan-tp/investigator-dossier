@@ -1059,7 +1059,7 @@ async function renderDetail(){
         <div class="photo-frame" id="bust-frame">
           ${bustUrl?`<img src="${bustUrl}" alt="${c.name}">`:`<div class="photo-frame-ph">NO<br>PHOTO</div>`}
         </div>
-        <button class="upload-under-btn" onclick="document.getElementById('detail-bust-file').click()">▲ 変更</button>
+        <button class="upload-under-btn edit-only" onclick="document.getElementById('detail-bust-file').click()">▲ 変更</button>
         <input type="file" id="detail-bust-file" accept="image/*" style="display:none" onchange="onDetailPortrait(event)">
         <div class="portrait-label">BUST UP</div>
       </div>
@@ -1164,16 +1164,16 @@ async function loadFullTab(){
   const fullUrl=c.full_path?storageUrl(c.full_path):'';
   pane.innerHTML=`
     <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 0">
-      <div id="fullbody-display" style="cursor:pointer" onclick="document.getElementById('fullbody-file-input').click()" title="クリックで変更">
+      <div id="fullbody-display" style="${IS_READONLY?'':'cursor:pointer'}" ${IS_READONLY?'':'onclick="document.getElementById(\'fullbody-file-input\').click()"'} title="${IS_READONLY?'':'クリックで変更'}">
         ${fullUrl
           ?`<img src="${fullUrl}" style="max-width:min(360px,80vw);object-fit:contain;display:block;border:1px solid var(--rule-light);box-shadow:2px 4px 14px rgba(100,80,50,.15)">`
           :`<div style="width:200px;height:320px;border:1px dashed var(--rule-mid);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--paper-warm)">
-              <div style="font-size:28px;color:var(--ink-faint)">＋</div>
-              <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--ink-faint);text-transform:uppercase">UPLOAD</div>
+              <div style="font-size:28px;color:var(--ink-faint)">${IS_READONLY?'　':'＋'}</div>
+              <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--ink-faint);text-transform:uppercase">${IS_READONLY?'NO IMAGE':'UPLOAD'}</div>
             </div>`}
       </div>
       <input type="file" id="fullbody-file-input" accept="image/*" style="display:none" onchange="onFullbodyUpload(event)">
-      ${fullUrl?`<button style="font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--ink-dim);background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-transform:uppercase" onclick="deleteFullImg()">✕ 削除</button>`:''}
+      ${!IS_READONLY && fullUrl?`<button style="font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--ink-dim);background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-transform:uppercase" onclick="deleteFullImg()">✕ 削除</button>`:''}
     </div>`;
 }
 
