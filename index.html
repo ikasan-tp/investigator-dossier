@@ -931,6 +931,31 @@ body.readonly .add-card{display:none}
   </div>
 </div>
 
+<!-- MODAL: 一括カテゴリ変更 -->
+<div class="modal-overlay" id="modal-bulk-cat">
+  <div class="modal" style="max-width:320px">
+    <button class="modal-close" onclick="closeModal('modal-bulk-cat')">[ close ]</button>
+    <div class="modal-title">カテゴリをまとめて変更</div>
+    <div class="form-row">
+      <label class="form-lbl">変更後のカテゴリ</label>
+      <select class="form-sel" id="bulk-cat-sel">
+        <option value="通常">通常</option>
+        <option value="喜び">喜び</option>
+        <option value="怒り">怒り</option>
+        <option value="哀しみ">哀しみ</option>
+        <option value="楽しい">楽しい</option>
+        <option value="状態">状態変化</option>
+        <option value="立ち絵">立ち絵</option>
+        <option value="その他">その他</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-bulk-cat')">キャンセル</button>
+      <button class="btn btn-primary" onclick="bulkChangeCat()">変更する</button>
+    </div>
+  </div>
+</div>
+
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox">
   <button class="lb-close" onclick="closeLightbox()">[ close ]</button>
@@ -1277,8 +1302,15 @@ function renderExprPane(exprs){
     <div class="bulk-bar">
       <span class="bulk-bar-txt">${selectedExprs.size} 件選択中</span>
       <button class="btn btn-ghost btn-sm" onclick="selectedExprs.clear();loadExprTab()">選択解除</button>
+      <button class="btn btn-ghost btn-sm" onclick="openBulkCatModal()">カテゴリ変更</button>
       <button class="btn btn-danger btn-sm" onclick="bulkDeleteExprs()">まとめて削除</button>
     </div>`:'';
+
+  // 全選択ボタン
+  const selectAllBtn=!IS_READONLY&&filtered.length>0?`
+    <button class="btn btn-ghost btn-sm edit-only" style="font-size:8px" onclick="toggleSelectAll(${JSON.stringify(filtered.map(e=>e.id))})">
+      ${selectedExprs.size===filtered.length&&filtered.length>0?'全解除':'全選択'}
+    </button>`:'';
 
   pane.innerHTML=`
     <div class="expr-toolbar">
@@ -1291,10 +1323,39 @@ function renderExprPane(exprs){
     </div>
     ${bulkBar}
     <div class="expr-meta-row">
-      <div class="expr-count"><strong>${filtered.length}</strong> 件表示 / 全 <strong>${exprs.length}</strong> 件</div>
+      <div class="expr-count"><strong>${filtered.length}</strong> 件表示 / 全 <strong>${exprs.length}</strong> 件 ${selectAllBtn}</div>
       <button class="btn btn-primary btn-sm edit-only" onclick="openExprModal()">＋ 差分を追加</button>
     </div>
     <div class="expr-grid">${grid}</div>`;
+}
+
+function toggleSelectAll(ids){
+  const allSelected=ids.every(id=>selectedExprs.has(id));
+  if(allSelected){ids.forEach(id=>selectedExprs.delete(id));}
+  else{ids.forEach(id=>selectedExprs.add(id));}
+  loadExprTab();
+}
+
+function openBulkCatModal(){
+  if(!selectedExprs.size)return;
+  document.getElementById('modal-bulk-cat').classList.add('open');
+}
+
+async function bulkChangeCat(){
+  const cat=document.getElementById('bulk-cat-sel').value;
+  const ids=[...selectedExprs];
+  const btn=document.querySelector('#modal-bulk-cat .btn-primary');
+  btn.disabled=true;btn.textContent='変更中…';
+  try{
+    for(const id of ids){
+      await sbUpsert('expressions',{id,char_id:getChar()?.id,category:cat});
+    }
+    closeModal('modal-bulk-cat');
+    selectedExprs.clear();
+    toast(`${ids.length}件のカテゴリを「${cat}」に変更しました`);
+    loadExprTab();
+  }catch(e){toast('エラー: '+e.message);}
+  btn.disabled=false;btn.textContent='変更する';
 }
 
 function setFilt(c){filt=c;loadExprTab();}
