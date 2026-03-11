@@ -663,6 +663,75 @@ body::before{
 
 .db-loading{position:fixed;inset:0;background:var(--paper-base);z-index:500;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px}
 .db-loading-txt{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:5px;color:var(--ink-dim);text-transform:uppercase}
+
+/* ══ MOBILE ══ */
+@media (max-width: 600px) {
+  /* ヘッダー */
+  .site-header{padding:0 14px;gap:8px;height:auto;min-height:54px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+  .header-stamp{font-size:8px;letter-spacing:2px;padding:2px 7px}
+  .header-sub{display:none}
+  .hstat{font-size:8px;letter-spacing:1px}
+
+  /* メインコンテンツ */
+  .main-content{padding:14px 10px}
+
+  /* 一覧：横長リスト */
+  .chars-grid{grid-template-columns:1fr;gap:8px}
+  .char-card{display:flex;flex-direction:row;align-items:stretch}
+  .card-photo{width:80px;min-width:80px;height:80px;flex-shrink:0;border-bottom:none;border-right:1px solid var(--rule-light)}
+  .card-body{flex:1;padding:10px 12px;display:flex;flex-direction:column;justify-content:center}
+  .card-body::before{display:none}
+  .card-name{font-size:14px}
+  .add-card{min-height:64px;flex-direction:row;gap:10px;padding:0 20px}
+
+  /* 詳細：縦積み */
+  .case-inner{flex-direction:column}
+  .portrait-col{
+    width:100%;flex-direction:row;align-items:center;
+    border-right:none;border-bottom:1px solid var(--rule-light);
+    padding:12px 14px;gap:12px;justify-content:flex-start;
+  }
+  .photo-frame{width:80px;height:100px;flex-shrink:0}
+  .portrait-label{display:none}
+  .upload-under-btn{width:auto;font-size:7px;padding:3px 6px}
+
+  .case-data{padding:12px 14px}
+  .case-name{font-size:20px;word-break:break-all}
+  .case-stamp{font-size:6px;top:10px;right:10px;letter-spacing:2px}
+  .case-fields{gap:10px 18px}
+  .case-field-v{font-size:13px}
+
+  .case-actions{
+    flex-direction:row;border-left:none;
+    border-top:1px solid var(--rule-light);
+    padding:8px 14px;justify-content:flex-end;gap:8px;background:var(--paper-warm);
+  }
+
+  /* 能力値 */
+  .stats-block{padding:10px 12px}
+  .stats-8{grid-template-columns:repeat(4,1fr);gap:3px}
+  .stats-4{grid-template-columns:repeat(2,1fr);gap:3px}
+  .sbox-in{font-size:15px}
+
+  /* タブ */
+  .tabs-row{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
+  .tab-btn{padding:8px 12px 9px;font-size:7px;letter-spacing:1px;white-space:nowrap;flex-shrink:0}
+  .tab-content{padding:12px 10px}
+
+  /* 差分グリッド */
+  .expr-grid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .filter-wrap{flex-wrap:wrap;gap:4px}
+  .filter-btn{font-size:7px;padding:3px 7px;letter-spacing:1px}
+  .sort-btn{font-size:7px;padding:3px 7px}
+
+  /* 背景情報 */
+  .bg-grid{grid-template-columns:1fr}
+
+  /* モーダル */
+  .modal{padding:18px 14px;margin:8px;max-height:95vh}
+  .form-g4{grid-template-columns:repeat(2,1fr)}
+  .form-g2{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
