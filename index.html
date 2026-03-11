@@ -784,7 +784,12 @@ body::before{
     <div class="form-row"><label class="form-lbl">ふりがな</label><input type="text" class="form-input" id="f-ruby" placeholder="例: やまだ たろう"></div>
     <div class="form-g2">
       <div class="form-row"><label class="form-lbl">職業</label><input type="text" class="form-input" id="f-job" placeholder="例: 私立探偵"></div>
-      <div class="form-row"><label class="form-lbl">年齢 · 性別</label><input type="text" class="form-input" id="f-age" placeholder="例: 28歳 · 男性"></div>
+      <div class="form-row"><label class="form-lbl">性別</label><input type="text" class="form-input" id="f-gender" placeholder="例: 男性"></div>
+    </div>
+    <div class="form-g4">
+      <div class="form-row"><label class="form-lbl">年齢</label><input type="text" class="form-input" id="f-age" placeholder="例: 28歳"></div>
+      <div class="form-row"><label class="form-lbl">身長</label><input type="text" class="form-input" id="f-height" placeholder="例: 170cm"></div>
+      <div class="form-row"><label class="form-lbl">体重</label><input type="text" class="form-input" id="f-weight" placeholder="例: 60kg"></div>
     </div>
     <div class="form-section">基本能力値</div>
     <p class="form-hint">入力すると 1/2値 · 1/5値 を自動表示します</p>
@@ -1014,10 +1019,9 @@ async function renderDetail(){
   const bustUrl=c.bust_path?storageUrl(c.bust_path):'';
 
   const p8=sdefs.map(({k,jp})=>{
-    const v=st[k]||'';const h=v?Math.floor(v/2):'—';const f=v?Math.floor(v/5):'—';
+    const v=st[k]||'';
     return `<div class="sbox"><span class="sbox-key">${k}</span><span class="sbox-jp">${jp}</span>
       <input class="sbox-in" type="number" value="${v}" min="1" max="99" oninput="updStat('${k}',this)" placeholder="—">
-      <div class="sbox-frac" id="sf-${k}"><span>${h}</span><span style="color:var(--rule-dark)">/</span><span>${f}</span></div>
     </div>`;
   }).join('');
 
@@ -1050,7 +1054,10 @@ async function renderDetail(){
           ${c.ruby?`<div class="case-ruby">${c.ruby}</div>`:''}
           <div class="case-fields">
             ${c.job?`<div><span class="case-field-k">職業</span><span class="case-field-v">${c.job}</span></div>`:''}
-            ${c.age?`<div><span class="case-field-k">年齢 · 性別</span><span class="case-field-v">${c.age}</span></div>`:''}
+            ${c.gender?`<div><span class="case-field-k">性別</span><span class="case-field-v">${c.gender}</span></div>`:''}
+            ${c.age?`<div><span class="case-field-k">年齢</span><span class="case-field-v">${c.age}</span></div>`:''}
+            ${c.height?`<div><span class="case-field-k">身長</span><span class="case-field-v">${c.height}</span></div>`:''}
+            ${c.weight?`<div><span class="case-field-k">体重</span><span class="case-field-v">${c.weight}</span></div>`:''}
           </div>
           <div class="case-tags">${(c.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
         </div>
@@ -1065,7 +1072,7 @@ async function renderDetail(){
       </div>
     </div>
     <div class="stats-block">
-      <div class="stats-title">基本能力値 — 右の数値は 1/2 · 1/5</div>
+      <div class="stats-title">基本能力値</div>
       <div class="stats-8">${p8}</div>
       <div class="stats-4">${s4}</div>
     </div>`;
@@ -1107,8 +1114,6 @@ async function onDetailPortrait(e){
 function updStat(k,inp){
   const c=getChar();if(!c)return;if(!c.stats)c.stats={};
   const v=parseInt(inp.value)||0;c.stats[k]=v;
-  const el=document.getElementById('sf-'+k);
-  if(el)el.innerHTML=v?`<span>${Math.floor(v/2)}</span><span style="color:var(--rule-dark)">/</span><span>${Math.floor(v/5)}</span>`:`<span>—</span><span style="color:var(--rule-dark)">/</span><span>—</span>`;
   debounce('stat',()=>saveCharToSupa(c),800);
 }
 function updSec(k,f,v){
@@ -1296,7 +1301,7 @@ async function saveEditExpr(){
 const STATS=['STR','CON','SIZ','DEX','APP','INT','POW','EDU'];
 function openAddModal(){
   bustImg=null;
-  ['f-name','f-ruby','f-job','f-age','f-tags'].forEach(id=>document.getElementById(id).value='');
+  ['f-name','f-ruby','f-job','f-age','f-gender','f-height','f-weight','f-tags'].forEach(id=>document.getElementById(id).value='');
   STATS.forEach(s=>document.getElementById('f-'+s).value='');
   ['hp','mp','san','luk'].forEach(k=>{document.getElementById('f-'+k+'-cur').value='';document.getElementById('f-'+k+'-max').value='';});
   document.getElementById('main-prev').style.display='none';
@@ -1310,6 +1315,9 @@ async function openEditModal(){
   const c=getChar();if(!c)return;bustImg=null;
   document.getElementById('f-name').value=c.name||'';document.getElementById('f-ruby').value=c.ruby||'';
   document.getElementById('f-job').value=c.job||'';document.getElementById('f-age').value=c.age||'';
+  document.getElementById('f-gender').value=c.gender||'';
+  document.getElementById('f-height').value=c.height||'';
+  document.getElementById('f-weight').value=c.weight||'';
   document.getElementById('f-tags').value=(c.tags||[]).join(', ');
   STATS.forEach(s=>document.getElementById('f-'+s).value=(c.stats||{})[s]||'');
   ['hp','mp','san','luk'].forEach(k=>{const s=(c.secondary||{})[k]||{};document.getElementById('f-'+k+'-cur').value=s.cur||'';document.getElementById('f-'+k+'-max').value=s.max||'';});
@@ -1331,7 +1339,7 @@ function onMainImg(e,type){
 function collectForm(){
   const stats={};STATS.forEach(s=>{const v=parseInt(document.getElementById('f-'+s).value);if(v)stats[s]=v;});
   const secondary={};['hp','mp','san','luk'].forEach(k=>{secondary[k]={cur:parseInt(document.getElementById('f-'+k+'-cur').value)||0,max:parseInt(document.getElementById('f-'+k+'-max').value)||0};});
-  return{name:document.getElementById('f-name').value.trim(),ruby:document.getElementById('f-ruby').value.trim(),job:document.getElementById('f-job').value.trim(),age:document.getElementById('f-age').value.trim(),tags:document.getElementById('f-tags').value.trim().split(',').map(t=>t.trim()).filter(Boolean),stats,secondary};
+  return{name:document.getElementById('f-name').value.trim(),ruby:document.getElementById('f-ruby').value.trim(),job:document.getElementById('f-job').value.trim(),age:document.getElementById('f-age').value.trim(),gender:document.getElementById('f-gender').value.trim(),height:document.getElementById('f-height').value.trim(),weight:document.getElementById('f-weight').value.trim(),tags:document.getElementById('f-tags').value.trim().split(',').map(t=>t.trim()).filter(Boolean),stats,secondary};
 }
 async function saveChar(){
   const d=collectForm();if(!d.name){toast('探索者名を入力してください');return;}
