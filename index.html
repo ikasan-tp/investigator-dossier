@@ -1146,7 +1146,13 @@ async function onDetailPortrait(e){
   const f=e.target.files[0];if(!f)return;const c=getChar();if(!c)return;
   toast('アップロード中…');
   try{
-    const path=`${c.id}/bust.${f.name.split('.').pop()}`;
+    // 拡張子に関わらず bust.jpg で固定（上書き保証）
+    const ext=f.name.split('.').pop().toLowerCase()||'jpg';
+    const path=`${c.id}/bust.${ext}`;
+    // 古いパスが違う拡張子なら先に削除
+    if(c.bust_path && c.bust_path!==path){
+      try{await storageDelete([c.bust_path]);}catch(e){}
+    }
     await storageUpload(path,f);
     c.bust_path=path;
     await saveCharToSupa(c);
@@ -1455,7 +1461,8 @@ async function saveChar(){
   const c={id,...d,memo:'',quote:'',bg:{},bust_path:'',full_path:''};
   try{
     if(bustImg){
-      const path=`${id}/bust.${bustImg.name.split('.').pop()}`;
+      const ext=bustImg.name.split('.').pop().toLowerCase()||'jpg';
+      const path=`${id}/bust.${ext}`;
       await storageUpload(path,bustImg);c.bust_path=path;
     }
     await saveCharToSupa(c);
@@ -1471,7 +1478,11 @@ async function updChar(id){
   try{
     Object.assign(c,d);
     if(bustImg){
-      const path=`${id}/bust.${bustImg.name.split('.').pop()}`;
+      const ext=bustImg.name.split('.').pop().toLowerCase()||'jpg';
+      const path=`${id}/bust.${ext}`;
+      if(c.bust_path && c.bust_path!==path){
+        try{await storageDelete([c.bust_path]);}catch(e){}
+      }
       await storageUpload(path,bustImg);c.bust_path=path;
     }
     await saveCharToSupa(c);
