@@ -1167,7 +1167,7 @@ async function loadFullTab(){
     <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 0">
       <div id="fullbody-display" style="${IS_READONLY?'':'cursor:pointer'}" ${IS_READONLY?'':'onclick="document.getElementById(\'fullbody-file-input\').click()"'} title="${IS_READONLY?'':'クリックで変更'}">
         ${fullUrl
-          ?`<img src="${fullUrl}" style="max-width:min(360px,80vw);object-fit:contain;display:block;border:1px solid var(--rule-light);box-shadow:2px 4px 14px rgba(100,80,50,.15)">`
+          ?`<img src="${fullUrl}" style="max-width:min(360px,80vw);object-fit:contain;display:block;border:1px solid var(--rule-light);box-shadow:2px 4px 14px rgba(100,80,50,.15);padding:16px;background:var(--paper-warm);box-sizing:border-box">`
           :`<div style="width:200px;height:320px;border:1px dashed var(--rule-mid);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--paper-warm)">
               <div style="font-size:28px;color:var(--ink-faint)">${IS_READONLY?'　':'＋'}</div>
               <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--ink-faint);text-transform:uppercase">${IS_READONLY?'NO IMAGE':'UPLOAD'}</div>
