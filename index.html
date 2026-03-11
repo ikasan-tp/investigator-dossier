@@ -1060,7 +1060,7 @@ async function renderDetail(){
           ${bustUrl?`<img src="${bustUrl}" alt="${c.name}">`:`<div class="photo-frame-ph">NO<br>PHOTO</div>`}
         </div>
         <button class="upload-under-btn edit-only" onclick="document.getElementById('detail-bust-file').click()">▲ 変更</button>
-        <input type="file" id="detail-bust-file" accept="image/*" style="display:none" onchange="onDetailPortrait(event)">
+        <input type="file" id="detail-bust-file" accept="image/*" style="display:none" onchange="onDetailPortrait(event)" ${IS_READONLY?'disabled':''}>
         <div class="portrait-label">BUST UP</div>
       </div>
       <div class="case-data">
@@ -1115,6 +1115,7 @@ async function renderDetail(){
 }
 
 async function onDetailPortrait(e){
+  if(IS_READONLY)return;
   const f=e.target.files[0];if(!f)return;const c=getChar();if(!c)return;
   toast('アップロード中…');
   try{
@@ -1172,12 +1173,13 @@ async function loadFullTab(){
               <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--ink-faint);text-transform:uppercase">${IS_READONLY?'NO IMAGE':'UPLOAD'}</div>
             </div>`}
       </div>
-      <input type="file" id="fullbody-file-input" accept="image/*" style="display:none" onchange="onFullbodyUpload(event)">
+      <input type="file" id="fullbody-file-input" accept="image/*" style="display:none" onchange="onFullbodyUpload(event)" ${IS_READONLY?'disabled':''}>
       ${!IS_READONLY && fullUrl?`<button style="font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--ink-dim);background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-transform:uppercase" onclick="deleteFullImg()">✕ 削除</button>`:''}
     </div>`;
 }
 
 async function onFullbodyUpload(e){
+  if(IS_READONLY)return;
   const f=e.target.files[0];if(!f)return;const c=getChar();if(!c)return;
   toast('アップロード中…');
   try{
