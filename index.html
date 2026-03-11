@@ -1162,7 +1162,7 @@ async function renderDetail(){
     <div class="memo-wrap" style="margin-top:14px">
       <div class="memo-label">FIELD NOTES</div>
       <textarea class="memo-ta" id="memo-text" placeholder="セッション記録 · その他メモ…">${c.memo||''}</textarea>
-      <div class="memo-foot"><button class="btn btn-primary" onclick="saveMemo()">保存する</button></div>
+      <div class="memo-foot"><button class="btn btn-primary edit-only" onclick="saveMemo()">保存する</button></div>
     </div>`;
   loadExprTab();
 }
