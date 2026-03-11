@@ -339,7 +339,29 @@ body::before{
 }
 .fullbody-del:hover{color:var(--seal-body)}
 
-/* ── 一言メモ（セリフ欄） ── */
+/* ── 一括選択チェックボックス ── */
+.expr-card{position:relative}
+.expr-check{
+  position:absolute;top:6px;left:6px;z-index:10;
+  width:18px;height:18px;cursor:pointer;accent-color:var(--seal-body);
+}
+.expr-card.selected{outline:2px solid var(--seal-body)}
+.bulk-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 12px;margin-bottom:8px;
+  background:var(--paper-warm);border:1px solid var(--rule-light);
+  border-left:3px solid var(--seal-mid);
+}
+.bulk-bar-txt{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--ink-muted);letter-spacing:2px;flex:1}
+/* ── タグ候補 ── */
+.tag-candidates{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.tag-cand{
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  padding:2px 8px;border:1px dashed var(--rule-mid);
+  color:var(--pen-body);cursor:pointer;background:var(--paper-warm);
+  transition:all .15s;
+}
+.tag-cand:hover{background:var(--paper-base);border-color:var(--pen-body)}
 .case-quote{
   font-family:'Libre Baskerville',serif;font-style:italic;
   font-size:13px;color:var(--ink-muted);
@@ -827,7 +849,11 @@ body.readonly .add-card{display:none}
       <div class="form-row"><label class="form-lbl">SAN（現在 / 最大）</label><div style="display:flex;gap:5px"><input type="number" class="form-input" id="f-san-cur" placeholder="現在" style="flex:1"><input type="number" class="form-input" id="f-san-max" placeholder="最大" style="flex:1"></div></div>
       <div class="form-row"><label class="form-lbl">幸運（現在 / 最大）</label><div style="display:flex;gap:5px"><input type="number" class="form-input" id="f-luk-cur" placeholder="現在" style="flex:1"><input type="number" class="form-input" id="f-luk-max" placeholder="最大" style="flex:1"></div></div>
     </div>
-    <div class="form-row"><label class="form-lbl">タグ（カンマ区切り）</label><input type="text" class="form-input" id="f-tags" placeholder="例: 現役, KP, お気に入り"></div>
+    <div class="form-row">
+      <label class="form-lbl">タグ（カンマ区切り）</label>
+      <input type="text" class="form-input" id="f-tags" placeholder="例: 現役, KP, お気に入り" oninput="refreshTagCands()">
+      <div class="tag-candidates" id="tag-cands"></div>
+    </div>
     <div class="form-section">バストアップ写真</div>
     <div class="form-row">
       <p class="form-hint">一覧・詳細ページに表示されます。全身立ち絵は登録後に「表情差分・立ち絵」タブから設定できます。</p>
@@ -1200,6 +1226,7 @@ async function deleteFullImg(){
 }
 
 /* ════ EXPR RENDER ════ */
+let selectedExprs=new Set();
 function renderExprPane(exprs){
   const pane=document.getElementById('tab-expr');if(!pane)return;
   const cats=['all','通常','喜び','怒り','哀しみ','楽しい','状態','立ち絵','その他'];
@@ -1223,9 +1250,11 @@ function renderExprPane(exprs){
       const sl=(e.label||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       const sc=(e.category||'通常').replace(/'/g,"\\'");
       const imgUrl=e.image_path?storageUrl(e.image_path):'';
-      grid+=`<div class="expr-card">
+      const checked=selectedExprs.has(e.id)?'checked':'';
+      grid+=`<div class="expr-card${selectedExprs.has(e.id)?' selected':''}" id="ec-${e.id}">
+        ${IS_READONLY?'':`<input type="checkbox" class="expr-check edit-only" ${checked} onchange="toggleExprSel('${e.id}',this.checked)">`}
         <div class="expr-img" onclick="openLb(${i})">${imgUrl?`<img src="${imgUrl}" alt="${e.label||''}" loading="lazy">`:`<div class="expr-img-ph">NO IMAGE</div>`}</div>
-        <div class="expr-name-bar" onclick="copyLblByEl(event,'${sl}','name-${e.id}')" title="クリックでコピー">
+        <div class="expr-name-bar">
           <div class="expr-name" id="name-${e.id}">${e.label||'（名前なし）'}</div>
           <div class="expr-cat">${e.category||''}</div>
         </div>
@@ -1238,6 +1267,13 @@ function renderExprPane(exprs){
     });
   }
 
+  const bulkBar=!IS_READONLY&&selectedExprs.size>0?`
+    <div class="bulk-bar">
+      <span class="bulk-bar-txt">${selectedExprs.size} 件選択中</span>
+      <button class="btn btn-ghost btn-sm" onclick="selectedExprs.clear();loadExprTab()">選択解除</button>
+      <button class="btn btn-danger btn-sm" onclick="bulkDeleteExprs()">まとめて削除</button>
+    </div>`:'';
+
   pane.innerHTML=`
     <div class="expr-toolbar">
       <div class="filter-wrap">${fbtn}</div>
@@ -1247,8 +1283,9 @@ function renderExprPane(exprs){
       <span style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--ink-dim);letter-spacing:2px;white-space:nowrap">並び順:</span>
       ${sbtn}
     </div>
+    ${bulkBar}
     <div class="expr-meta-row">
-      <div class="expr-count"><strong>${filtered.length}</strong> 件表示 / 全 <strong>${exprs.length}</strong> 件<span style="margin-left:12px;font-size:8px;color:var(--ink-faint)">※差分名をクリックでコピー</span></div>
+      <div class="expr-count"><strong>${filtered.length}</strong> 件表示 / 全 <strong>${exprs.length}</strong> 件</div>
       <button class="btn btn-primary btn-sm edit-only" onclick="openExprModal()">＋ 差分を追加</button>
     </div>
     <div class="expr-grid">${grid}</div>`;
@@ -1256,6 +1293,53 @@ function renderExprPane(exprs){
 
 function setFilt(c){filt=c;loadExprTab();}
 function setSort(m){sortMode=m;loadExprTab();}
+
+function toggleExprSel(id,checked){
+  if(checked)selectedExprs.add(id);else selectedExprs.delete(id);
+  const card=document.getElementById('ec-'+id);
+  if(card)card.classList.toggle('selected',checked);
+  // bulkBarを更新
+  loadExprTab();
+}
+
+async function bulkDeleteExprs(){
+  if(!selectedExprs.size)return;
+  if(!confirm(`${selectedExprs.size}件の差分画像を削除しますか？`))return;
+  const ids=[...selectedExprs];
+  toast('削除中…');
+  try{
+    // 画像パスを先に取得
+    const rows=await sbSelect('expressions',`char_id=eq.${getChar().id}`);
+    const paths=rows.filter(r=>ids.includes(r.id)&&r.image_path).map(r=>r.image_path);
+    // DBから削除
+    for(const id of ids){await sbDelete('expressions',`id=eq.${id}`);}
+    // Storageから削除
+    if(paths.length)try{await storageDelete(paths);}catch(e){}
+    selectedExprs.clear();
+    toast(`${ids.length}件を削除しました`);loadExprTab();
+  }catch(e){toast('エラー: '+e.message);}
+}
+
+function refreshTagCands(){
+  const cands=document.getElementById('tag-cands');if(!cands)return;
+  const input=document.getElementById('f-tags');if(!input)return;
+  // 全キャラのタグを収集
+  const allTags=[...new Set(chars.flatMap(c=>c.tags||[]))].filter(Boolean);
+  // 現在入力済みのタグ
+  const current=input.value.split(',').map(t=>t.trim()).filter(Boolean);
+  // 未使用のタグだけ候補表示
+  const unused=allTags.filter(t=>!current.includes(t));
+  if(!unused.length){cands.innerHTML='';return;}
+  cands.innerHTML=unused.map(t=>`<span class="tag-cand" onclick="addTagCand('${t.replace(/'/g,"\\'")}')">${t}</span>`).join('');
+}
+
+function addTagCand(tag){
+  const input=document.getElementById('f-tags');if(!input)return;
+  const current=input.value.split(',').map(t=>t.trim()).filter(Boolean);
+  if(!current.includes(tag))current.push(tag);
+  input.value=current.join(', ');
+  refreshTagCands();
+}
 
 function copyLblByEl(e,lbl,nameId){
   e.stopPropagation();
@@ -1330,6 +1414,7 @@ function openAddModal(){
   document.getElementById('char-save-btn').textContent='ファイルを作成';
   document.getElementById('char-save-btn').onclick=saveChar;
   document.getElementById('modal-char').classList.add('open');
+  refreshTagCands();
 }
 async function openEditModal(){
   const c=getChar();if(!c)return;bustImg=null;
@@ -1348,6 +1433,7 @@ async function openEditModal(){
   document.getElementById('char-save-btn').textContent='保存する';
   document.getElementById('char-save-btn').onclick=()=>updChar(c.id);
   document.getElementById('modal-char').classList.add('open');
+  refreshTagCands();
 }
 function onMainImg(e,type){
   const f=e.target.files[0];if(!f)return;bustImg=f;
