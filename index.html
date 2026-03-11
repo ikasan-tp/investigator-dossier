@@ -734,8 +734,20 @@ body::before{
   .form-g4{grid-template-columns:repeat(2,1fr)}
   .form-g2{grid-template-columns:1fr}
 }
+/* ══ 閲覧モード ══ */
+.view-mode-badge{
+  font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:3px;
+  color:var(--pen-body);border:1.5px solid var(--pen-body);
+  padding:2px 10px;opacity:.8;text-transform:uppercase;white-space:nowrap;
+}
+body.readonly .edit-only{display:none !important}
+body.readonly .sbox-in,
+body.readonly .ssbox-in,
+body.readonly .case-quote,
+body.readonly .bg-ta,
+body.readonly .memo-ta{pointer-events:none;user-select:text}
+body.readonly .add-card{display:none}
 </style>
-</head>
 <body>
 
 <div class="db-loading" id="db-loading"><div class="db-loading-txt">LOADING ARCHIVE</div></div>
@@ -744,6 +756,8 @@ body::before{
   <div class="header-stamp">CASE FILE</div>
   <div class="site-title">探索者記録簿 <em>Investigator's Dossier</em></div>
   <div class="hfill"></div>
+  <div id="view-mode-badge" class="view-mode-badge" style="display:none">VIEW ONLY</div>
+  <button class="btn btn-ghost btn-sm edit-only" onclick="copyViewUrl()" style="font-size:8px;letter-spacing:2px" title="閲覧専用URLをコピー">🔗 閲覧用URL</button>
   <div class="hstat" id="hstat">0 FILES</div>
 </header>
 
@@ -1069,7 +1083,7 @@ async function renderDetail(){
           <textarea class="case-quote" id="case-quote-ta" rows="2" placeholder="「セリフ・キャッチフレーズ・印象的な言葉…」" oninput="updQuote(this.value)">${c.quote||''}</textarea>
         </div>
       </div>
-      <div class="case-actions">
+      <div class="case-actions edit-only">
         <button class="btn btn-ghost btn-sm" onclick="openEditModal()">編集</button>
         <button class="btn btn-danger btn-sm" onclick="deleteChar()">削除</button>
       </div>
@@ -1212,7 +1226,7 @@ function renderExprPane(exprs){
           <div class="expr-name" id="name-${e.id}">${e.label||'（名前なし）'}</div>
           <div class="expr-cat">${e.category||''}</div>
         </div>
-        <div class="expr-actions">
+        <div class="expr-actions edit-only">
           <button class="eact edit" onclick="openEditExpr('${e.id}','${sl}','${sc}')">✎ 編集</button>
           <button class="eact star${isMain?' main':''}" onclick="setMainExpr('${e.id}')">${isMain?'★ メイン':'☆ メイン'}</button>
           <button class="eact del" onclick="delExpr('${e.id}','${e.image_path||''}')">✕</button>
@@ -1232,7 +1246,7 @@ function renderExprPane(exprs){
     </div>
     <div class="expr-meta-row">
       <div class="expr-count"><strong>${filtered.length}</strong> 件表示 / 全 <strong>${exprs.length}</strong> 件<span style="margin-left:12px;font-size:8px;color:var(--ink-faint)">※差分名をクリックでコピー</span></div>
-      <button class="btn btn-primary btn-sm" onclick="openExprModal()">＋ 差分を追加</button>
+      <button class="btn btn-primary btn-sm edit-only" onclick="openExprModal()">＋ 差分を追加</button>
     </div>
     <div class="expr-grid">${grid}</div>`;
 }
@@ -1444,6 +1458,18 @@ function toast(msg){const el=document.getElementById('toast-el');el.textContent=
     else onExprImg({target:{files:e.dataTransfer.files}});
   });
 });
+
+/* ════ 閲覧モード ════ */
+const IS_READONLY=new URLSearchParams(location.search).get('view')==='1';
+if(IS_READONLY){
+  document.body.classList.add('readonly');
+  document.getElementById('view-mode-badge').style.display='';
+}
+function copyViewUrl(){
+  const url=location.href.split('?')[0]+'?view=1';
+  navigator.clipboard?navigator.clipboard.writeText(url).then(()=>toast('閲覧用URLをコピーしました')):
+    (()=>{const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);toast('閲覧用URLをコピーしました');})();
+}
 
 /* ════ 起動 ════ */
 async function init(){
