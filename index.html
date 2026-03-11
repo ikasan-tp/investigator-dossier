@@ -404,16 +404,13 @@ body::before{
   padding:6px 4px 5px;text-align:center;
   box-shadow:1px 1px 3px rgba(100,80,50,.08);
 }
-.sbox-key{font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:1px;color:var(--seal-mid);display:block;margin-bottom:1px;font-weight:bold}
-.sbox-jp{font-family:'Noto Serif JP',serif;font-size:7px;color:var(--ink-dim);display:block;margin-bottom:3px}
+.sbox-key{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--seal-mid);display:block;margin-bottom:4px;font-weight:bold}
 .sbox-in{
   width:100%;background:transparent;border:none;outline:none;
   font-family:'Share Tech Mono',monospace;font-size:20px;
   color:var(--ink-dark);text-align:center;padding:0;
   caret-color:var(--pen-body);letter-spacing:-1px;
 }
-.sbox-frac{font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--ink-dim);margin-top:2px;display:flex;justify-content:center;gap:3px}
-
 .stats-4{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
 .ssbox{
   background:var(--paper-base);
@@ -792,16 +789,15 @@ body::before{
       <div class="form-row"><label class="form-lbl">体重</label><input type="text" class="form-input" id="f-weight" placeholder="例: 60kg"></div>
     </div>
     <div class="form-section">基本能力値</div>
-    <p class="form-hint">入力すると 1/2値 · 1/5値 を自動表示します</p>
     <div class="form-g4" style="margin-bottom:6px">
-      <div><label class="form-lbl" style="font-size:7px">STR 筋力</label><input type="number" class="form-input" id="f-STR" min="1" max="99" placeholder="—"></div>
-      <div><label class="form-lbl" style="font-size:7px">CON 体力</label><input type="number" class="form-input" id="f-CON" min="1" max="99" placeholder="—"></div>
-      <div><label class="form-lbl" style="font-size:7px">SIZ 体格</label><input type="number" class="form-input" id="f-SIZ" min="1" max="99" placeholder="—"></div>
-      <div><label class="form-lbl" style="font-size:7px">DEX 敏捷</label><input type="number" class="form-input" id="f-DEX" min="1" max="99" placeholder="—"></div>
-      <div><label class="form-lbl" style="font-size:7px">APP 外見</label><input type="number" class="form-input" id="f-APP" min="1" max="99" placeholder="—"></div>
-      <div><label class="form-lbl" style="font-size:7px">INT 知性</label><input type="number" class="form-input" id="f-INT" min="1" max="99" placeholder="—"></div>
-      <div><label class="form-lbl" style="font-size:7px">POW 精神力</label><input type="number" class="form-input" id="f-POW" min="1" max="99" placeholder="—"></div>
-      <div><label class="form-lbl" style="font-size:7px">EDU 教育</label><input type="number" class="form-input" id="f-EDU" min="1" max="99" placeholder="—"></div>
+      <div><label class="form-lbl" style="font-size:9px">STR</label><input type="number" class="form-input" id="f-STR" min="1" max="99" placeholder="—"></div>
+      <div><label class="form-lbl" style="font-size:9px">CON</label><input type="number" class="form-input" id="f-CON" min="1" max="99" placeholder="—"></div>
+      <div><label class="form-lbl" style="font-size:9px">SIZ</label><input type="number" class="form-input" id="f-SIZ" min="1" max="99" placeholder="—"></div>
+      <div><label class="form-lbl" style="font-size:9px">DEX</label><input type="number" class="form-input" id="f-DEX" min="1" max="99" placeholder="—"></div>
+      <div><label class="form-lbl" style="font-size:9px">APP</label><input type="number" class="form-input" id="f-APP" min="1" max="99" placeholder="—"></div>
+      <div><label class="form-lbl" style="font-size:9px">INT</label><input type="number" class="form-input" id="f-INT" min="1" max="99" placeholder="—"></div>
+      <div><label class="form-lbl" style="font-size:9px">POW</label><input type="number" class="form-input" id="f-POW" min="1" max="99" placeholder="—"></div>
+      <div><label class="form-lbl" style="font-size:9px">EDU</label><input type="number" class="form-input" id="f-EDU" min="1" max="99" placeholder="—"></div>
     </div>
     <div class="form-section">二次ステータス</div>
     <div class="form-g2">
@@ -851,7 +847,7 @@ body::before{
       </select>
     </div>
     <div class="form-row">
-      <label class="form-lbl">画像ファイル（複数可 · 100枚以上対応）</label>
+      <label class="form-lbl">画像ファイル（複数可）</label>
       <div class="upload-zone" id="expr-zone" onclick="document.getElementById('expr-file').click()">
         <img class="upload-prev" id="expr-prev" src="" style="display:none">
         <div id="expr-ph"><p>クリック または ドラッグ＆ドロップ<br>PNG · JPG · WEBP · GIF</p></div>
@@ -942,7 +938,7 @@ function dataUrlToBlob(du){
 /* ════ STATE ════ */
 let chars=[];
 let curId=null,bustImg=null,exprBuf=[];
-let filt='all',sq='',sortMode='added';
+let filt='all',sq='',sortMode='name';
 let lbExprs=[],lbIdx=0;
 const getChar=()=>chars.find(c=>c.id===curId);
 
@@ -1018,9 +1014,9 @@ async function renderDetail(){
   const slbl={hp:'HP',mp:'MP',san:'SAN',luk:'幸運'};
   const bustUrl=c.bust_path?storageUrl(c.bust_path):'';
 
-  const p8=sdefs.map(({k,jp})=>{
+  const p8=sdefs.map(({k})=>{
     const v=st[k]||'';
-    return `<div class="sbox"><span class="sbox-key">${k}</span><span class="sbox-jp">${jp}</span>
+    return `<div class="sbox"><span class="sbox-key">${k}</span>
       <input class="sbox-in" type="number" value="${v}" min="1" max="99" oninput="updStat('${k}',this)" placeholder="—">
     </div>`;
   }).join('');
