@@ -988,7 +988,7 @@ function showView(n){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+n).classList.add('active');
   if(n==='list')renderList();
-  if(n==='detail')renderDetail();
+  if(n==='detail'){showTab('expr');renderDetail();}
 }
 function showTab(n){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
