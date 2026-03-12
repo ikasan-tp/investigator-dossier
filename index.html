@@ -782,6 +782,7 @@ body.readonly .add-card{display:none}
   <div class="hfill"></div>
   <div id="view-mode-badge" class="view-mode-badge" style="display:none">VIEW ONLY</div>
   <button class="btn btn-ghost btn-sm edit-only" onclick="copyViewUrl()" style="font-size:8px;letter-spacing:2px" title="閲覧専用URLをコピー">🔗 閲覧用URL</button>
+  <button class="btn btn-ghost btn-sm edit-only" onclick="showView('setup')" style="font-size:8px;letter-spacing:2px" title="DB設定">⚙ 設定</button>
   <div class="hstat" id="hstat">0 FILES</div>
 </header>
 
@@ -810,6 +811,41 @@ body.readonly .add-card{display:none}
       <div id="tab-expr" class="tab-pane active"></div>
       <div id="tab-full" class="tab-pane"></div>
       <div id="tab-memo" class="tab-pane"></div>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div id="view-setup" class="view">
+    <div class="sec-head">
+      <div class="sh-title">INITIAL SETUP</div>
+    </div>
+    <div style="max-width:520px;margin:32px auto;padding:0 16px">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--ink-dim);margin-bottom:24px;line-height:2">
+        Supabaseのプロジェクト情報を入力してください。<br>
+        設定はこのブラウザにのみ保存されます。
+      </div>
+      <div class="form-row" style="margin-bottom:16px">
+        <label class="form-lbl">Project URL</label>
+        <input type="text" class="form-input" id="setup-url" placeholder="https://xxxxxxxxxx.supabase.co">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--ink-faint);margin-top:4px">Supabase → Project Settings → API → Project URL</div>
+      </div>
+      <div class="form-row" style="margin-bottom:24px">
+        <label class="form-lbl">Anon Key</label>
+        <input type="text" class="form-input" id="setup-key" placeholder="eyJhbGci...">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--ink-faint);margin-top:4px">Supabase → Project Settings → API → anon public</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn btn-primary" onclick="saveSetup()">接続する</button>
+        <span id="setup-status" style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--ink-dim)"></span>
+      </div>
+      <div id="setup-current" style="margin-top:24px;padding:12px;background:var(--paper-warm);border:1px solid var(--rule-light);display:none">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--ink-dim);letter-spacing:2px;margin-bottom:8px">CURRENT CONNECTION</div>
+        <div id="setup-current-url" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--ink-muted);word-break:break-all"></div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="showView('list')">← 一覧へ戻る</button>
+          <button class="btn btn-danger btn-sm" onclick="clearSetup()">設定を削除</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -968,10 +1004,17 @@ body.readonly .add-card{display:none}
 <div class="toast" id="toast-el"></div>
 
 <script>
-/* ════ SUPABASE 設定 ════ */
-const SUPA_URL='https://ahytjvhtvgpvbpoldnsy.supabase.co';
-const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeXRqdmh0dmdwdmJwb2xkbnN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTI0NTMsImV4cCI6MjA4ODc4ODQ1M30.zhv9dNPTUOOjtWEIYfA85wqIIKkRP_VYh6muAlNVGhE';
-const H={'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY};
+/* ════ SUPABASE 設定（動的） ════ */
+let SUPA_URL='';
+let SUPA_KEY='';
+let H={};
+
+function loadSupaConfig(){
+  SUPA_URL=localStorage.getItem('supa_url')||'';
+  SUPA_KEY=localStorage.getItem('supa_key')||'';
+  H={'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY};
+}
+loadSupaConfig();
 
 /* REST ヘルパー */
 async function sbSelect(table,filter=''){
@@ -1042,6 +1085,7 @@ function showView(n){
   document.getElementById('view-'+n).classList.add('active');
   if(n==='list')renderList();
   if(n==='detail'){showTab('expr');renderDetail();}
+  if(n==='setup')initSetupView();
 }
 function showTab(n){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
@@ -1671,14 +1715,66 @@ function copyViewUrl(){
 }
 
 /* ════ 起動 ════ */
+function initSetupView(){
+  const url=localStorage.getItem('supa_url')||'';
+  const key=localStorage.getItem('supa_key')||'';
+  document.getElementById('setup-url').value=url;
+  document.getElementById('setup-key').value=key;
+  const cur=document.getElementById('setup-current');
+  if(url){
+    cur.style.display='block';
+    document.getElementById('setup-current-url').textContent=url;
+  }else{
+    cur.style.display='none';
+  }
+  document.getElementById('setup-status').textContent='';
+}
+
+async function saveSetup(){
+  const url=document.getElementById('setup-url').value.trim().replace(/\/$/,'');
+  const key=document.getElementById('setup-key').value.trim();
+  const status=document.getElementById('setup-status');
+  if(!url||!key){status.textContent='URLとKeyを入力してください';return;}
+  status.textContent='接続確認中…';
+  // 接続テスト
+  try{
+    const r=await fetch(`${url}/rest/v1/characters?limit=1`,{headers:{'apikey':key,'Authorization':'Bearer '+key}});
+    if(!r.ok)throw new Error('接続失敗: '+r.status);
+    localStorage.setItem('supa_url',url);
+    localStorage.setItem('supa_key',key);
+    loadSupaConfig();
+    status.textContent='接続成功！';
+    setTimeout(()=>{
+      chars=[];
+      document.getElementById('db-loading').style.display='flex';
+      init();
+    },800);
+  }catch(e){
+    status.textContent='エラー: '+e.message;
+  }
+}
+
+function clearSetup(){
+  if(!confirm('接続設定を削除しますか？'))return;
+  localStorage.removeItem('supa_url');
+  localStorage.removeItem('supa_key');
+  location.reload();
+}
+
 async function init(){
+  loadSupaConfig();
+  if(!SUPA_URL||!SUPA_KEY){
+    document.getElementById('db-loading').style.display='none';
+    showView('setup');
+    return;
+  }
   try{
     const rows=await sbSelect('characters','order=created_at.asc');
     chars=rows.map(r=>({...r.data,id:r.id}));
     document.getElementById('db-loading').style.display='none';
     renderList();
   }catch(err){
-    document.getElementById('db-loading').innerHTML=`<div style="color:var(--seal-body);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;text-align:center;padding:20px">CONNECTION ERROR<br><span style="opacity:.5;font-size:9px">${err.message}</span></div>`;
+    document.getElementById('db-loading').innerHTML=`<div style="color:var(--seal-body);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;text-align:center;padding:20px">CONNECTION ERROR<br><span style="opacity:.5;font-size:9px">${err.message}</span><br><br><button class="btn btn-ghost btn-sm" onclick="showView('setup')">設定を確認する</button></div>`;
   }
 }
 init();
