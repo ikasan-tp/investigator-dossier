@@ -1022,7 +1022,7 @@ function loadSupaConfig(){
   }
   H={'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY};
 }
-loadSupaConfig();
+// loadSupaConfig() は IS_READONLY 定義後に呼ぶ
 
 /* REST ヘルパー */
 async function sbSelect(table,filter=''){
@@ -1715,6 +1715,7 @@ const _params=new URLSearchParams(location.search);
 const IS_READONLY=_params.get('view')==='1';
 const _urlParam=_params.get('url')||'';
 const _keyParam=_params.get('key')||'';
+loadSupaConfig(); // IS_READONLY 確定後に接続設定を読み込む
 
 if(IS_READONLY){
   document.body.classList.add('readonly');
