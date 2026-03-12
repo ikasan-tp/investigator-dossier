@@ -827,12 +827,14 @@ body.readonly .add-card{display:none}
       <div class="form-row" style="margin-bottom:16px">
         <label class="form-lbl">Project URL</label>
         <input type="text" class="form-input" id="setup-url" placeholder="https://xxxxxxxxxx.supabase.co">
-        <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--ink-faint);margin-top:4px">Supabase → Project Settings → API → Project URL</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--ink-faint);margin-top:4px">Supabase → Settings → Data API → API URL</div>
       </div>
       <div class="form-row" style="margin-bottom:24px">
         <label class="form-lbl">Anon Key</label>
         <input type="text" class="form-input" id="setup-key" placeholder="eyJhbGci...">
-        <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--ink-faint);margin-top:4px">Supabase → Project Settings → API → anon public</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--ink-faint);margin-top:4px">Supabase → Settings → APIKeys → 
+Legacy anon, service_role API keys → anon
+public</div>
       </div>
       <div style="display:flex;gap:10px;align-items:center">
         <button class="btn btn-primary" onclick="saveSetup()">接続する</button>
