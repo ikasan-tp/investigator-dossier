@@ -832,9 +832,7 @@ body.readonly .add-card{display:none}
       <div class="form-row" style="margin-bottom:24px">
         <label class="form-lbl">Anon Key</label>
         <input type="text" class="form-input" id="setup-key" placeholder="eyJhbGci...">
-        <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--ink-faint);margin-top:4px">Supabase → Settings → APIKeys → 
-Legacy anon, service_role API keys → anon
-public</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--ink-faint);margin-top:4px">Supabase → Settings → API Keys → Legacy anon, service_role API keys → anon public</div>
       </div>
       <div style="display:flex;gap:10px;align-items:center">
         <button class="btn btn-primary" onclick="saveSetup()">接続する</button>
@@ -1007,13 +1005,21 @@ public</div>
 
 <script>
 /* ════ SUPABASE 設定（動的） ════ */
+const OWNER_URL='https://ahytjvhtvgpvbpoldnsy.supabase.co';
+const OWNER_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoeXRqdmh0dmdwdmJwb2xkbnN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTI0NTMsImV4cCI6MjA4ODc4ODQ1M30.zhv9dNPTUOOjtWEIYfA85wqIIKkRP_VYh6muAlNVGhE';
 let SUPA_URL='';
 let SUPA_KEY='';
 let H={};
 
 function loadSupaConfig(){
-  SUPA_URL=localStorage.getItem('supa_url')||'';
-  SUPA_KEY=localStorage.getItem('supa_key')||'';
+  if(IS_READONLY){
+    // 閲覧モード: URLパラメータ優先、なければオーナーのDB
+    SUPA_URL=_urlParam||OWNER_URL;
+    SUPA_KEY=_keyParam||OWNER_KEY;
+  }else{
+    SUPA_URL=localStorage.getItem('supa_url')||'';
+    SUPA_KEY=localStorage.getItem('supa_key')||'';
+  }
   H={'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY};
 }
 loadSupaConfig();
@@ -1705,13 +1711,18 @@ function toast(msg){const el=document.getElementById('toast-el');el.textContent=
 });
 
 /* ════ 閲覧モード ════ */
-const IS_READONLY=new URLSearchParams(location.search).get('view')==='1';
+const _params=new URLSearchParams(location.search);
+const IS_READONLY=_params.get('view')==='1';
+const _urlParam=_params.get('url')||'';
+const _keyParam=_params.get('key')||'';
+
 if(IS_READONLY){
   document.body.classList.add('readonly');
   document.getElementById('view-mode-badge').style.display='';
 }
 function copyViewUrl(){
-  const url=location.href.split('?')[0]+'?view=1';
+  const base=location.href.split('?')[0];
+  const url=base+'?view=1&url='+encodeURIComponent(SUPA_URL)+'&key='+encodeURIComponent(SUPA_KEY);
   navigator.clipboard?navigator.clipboard.writeText(url).then(()=>toast('閲覧用URLをコピーしました')):
     (()=>{const t=document.createElement('textarea');t.value=url;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);toast('閲覧用URLをコピーしました');})();
 }
@@ -1770,7 +1781,7 @@ function clearSetup(){
 
 async function init(){
   loadSupaConfig();
-  if(!SUPA_URL||!SUPA_KEY){
+  if(!IS_READONLY&&(!SUPA_URL||!SUPA_KEY)){
     document.getElementById('db-loading').style.display='none';
     showView('setup');
     return;
